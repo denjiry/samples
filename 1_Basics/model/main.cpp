@@ -33,7 +33,7 @@ double cpuSum(const std::vector<double>& x,
 {
     double acc = 0.0;
     for (size_t i = 0; i < x.size(); ++i) {
-      double al = alpha[i/alpha.size()];
+      double al = alpha[i/(x.size()/alpha.size())];
       acc += al * (x[i] * x[i]
                    -2 * (x[i] * sv[i])
                    + sv[i] * sv[i]);
@@ -100,6 +100,7 @@ void benchmarkSum(const std::vector<double>& x,
 {
     const size_t                   loop_count   = 20;
     const double                   expected     = cpuSum(x, sv, alpha);
+    std::cout << "couSum done. " << std::endl;
     const std::vector<std::string> kernel_names = { "sum_simple", "sum_base2", "sum_base4", "sum_base8" };
 
     try {
@@ -136,7 +137,7 @@ void benchmarkSum(const std::vector<double>& x,
         // Send src.
         command_queue.enqueueWriteBuffer(device_x, true, 0, sizeof(double) * num, &x[0]);
         command_queue.enqueueWriteBuffer(device_sv, true, 0, sizeof(double) * num, &sv[0]);
-        command_queue.enqueueWriteBuffer(device_alpha, true, 0, sizeof(double) * num, &alpha[0]);
+        command_queue.enqueueWriteBuffer(device_alpha, true, 0, sizeof(double) * na, &alpha[0]);
 
         // Create kernel for flush
         auto flush_kernel = cl::Kernel(program, "flush_LLC");
@@ -229,7 +230,7 @@ int main(int argc, char** argv)
 
     std::cout << "Calculating model." << std::endl;
     std::cout << "All elements : " << num << std::endl;
-    std::cout << " size : " << num << std::endl;
+    std::cout << "alpha size : " << na << std::endl;
 
     std::vector<double> x(num);
     std::vector<double> sv(num);
@@ -238,6 +239,7 @@ int main(int argc, char** argv)
     initVector(sv);
     initVector(alpha);
 
+    std::cout << "finish to prepare" << std::endl;
     benchmarkSum(x, sv, alpha);
 
     return 0;

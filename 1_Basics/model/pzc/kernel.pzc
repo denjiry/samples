@@ -41,14 +41,13 @@ void pzc_sum_simple(
     size_t       tid              = get_tid();
     size_t       gid              = pid * get_maxtid() + tid;
     const size_t GLOBAL_WORK_SIZE = get_maxtid() * get_maxpid();
-
     // Result == Sum of data[0..num-1]
     {
         double acc = 0.0;
         for (size_t i = gid; i < num; i += GLOBAL_WORK_SIZE) {
             double a = x[i];
             double b = sv[i];
-            int ind_alpha = i / na;
+            int ind_alpha = i / (num/na);
             double al = alpha[ind_alpha];
             chgthread();
             double tmp = a * a
@@ -112,7 +111,7 @@ void pzc_sum_base2(
         for (size_t i = gid; i < num; i += GLOBAL_WORK_SIZE) {
             double a = x[i];
             double b = sv[i];
-            int ind_alpha = i / na;
+            int ind_alpha = i / (num/na);
             double al = alpha[ind_alpha];
             chgthread();
             double tmp = a * a
@@ -176,7 +175,7 @@ void pzc_sum_base4(
         for (size_t i = gid; i < num; i += GLOBAL_WORK_SIZE) {
             double a = x[i];
             double b = sv[i];
-            int ind_alpha = i / na;
+            int ind_alpha = i / (num/na);
             double al = alpha[ind_alpha];
             chgthread();
             double tmp = a * a
@@ -246,7 +245,7 @@ void pzc_sum_base8(
         for (size_t i = gid; i < num; i += GLOBAL_WORK_SIZE) {
             double a = x[i];
             double b = sv[i];
-            int ind_alpha = i / na;
+            int ind_alpha = i / (num/na);
             double al = alpha[ind_alpha];
             chgthread();
             double tmp = a * a
