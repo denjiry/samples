@@ -28,13 +28,15 @@ inline void  initVector(std::vector<double>& src)
 }
 
 double cpuSum(const std::vector<double>& x,
-              const std::vector<double>& sv)
+              const std::vector<double>& sv,
+              const std::vector<double>& alpha)
 {
     double acc = 0.0;
     for (size_t i = 0; i < x.size(); ++i) {
-        acc += x[i] * x[i]
-               -2 * (x[i] * sv[i])
-               + sv[i] * sv[i];
+      double al = alpha[i/alpha.size()];
+      acc += al * (x[i] * x[i]
+                   -2 * (x[i] * sv[i])
+                   + sv[i] * sv[i]);
     }
     return acc;
 }
@@ -93,10 +95,11 @@ void getBasicDeviceInfo(const cl::Device& device, std::string& device_name, size
 }
 
 void benchmarkSum(const std::vector<double>& x,
-                  const std::vector<double>& sv)
+                  const std::vector<double>& sv,
+                  const std::vector<double>& alpha)
 {
     const size_t                   loop_count   = 20;
-    const double                   expected     = cpuSum(x, sv);
+    const double                   expected     = cpuSum(x, sv, alpha);
     const std::vector<std::string> kernel_names = { "sum_simple", "sum_base2", "sum_base4", "sum_base8" };
 
     try {
@@ -124,13 +127,16 @@ void benchmarkSum(const std::vector<double>& x,
 
         // Create Buffers.
         size_t num        = x.size();
+        size_t na         = alpha.size();
         auto   device_x = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(double) * num);
         auto   device_sv = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(double) * num);
+        auto   device_alpha = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(double) * na);
         auto   device_dst = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(double));
 
         // Send src.
         command_queue.enqueueWriteBuffer(device_x, true, 0, sizeof(double) * num, &x[0]);
         command_queue.enqueueWriteBuffer(device_sv, true, 0, sizeof(double) * num, &sv[0]);
+        command_queue.enqueueWriteBuffer(device_alpha, true, 0, sizeof(double) * num, &alpha[0]);
 
         // Create kernel for flush
         auto flush_kernel = cl::Kernel(program, "flush_LLC");
@@ -153,6 +159,8 @@ void benchmarkSum(const std::vector<double>& x,
             kernel.setArg(1, num);
             kernel.setArg(2, device_x);
             kernel.setArg(3, device_sv);
+            kernel.setArg(4, na);
+            kernel.setArg(5, device_alpha);
 
             double total_time = 0.0; // total elapsed time in nanoseconds
             bool   verify_ok  = true;
@@ -213,20 +221,24 @@ void benchmarkSum(const std::vector<double>& x,
 int main(int argc, char** argv)
 {
     size_t num = 1024;
+    size_t na = 200;
 
     if (argc > 1) {
         num = strtol(argv[1], nullptr, 10);
     }
 
-    std::cout << "Calculating ||x-sv||^2 of two array of double." << std::endl;
-    std::cout << "Array size : " << num << std::endl;
+    std::cout << "Calculating model." << std::endl;
+    std::cout << "All elements : " << num << std::endl;
+    std::cout << " size : " << num << std::endl;
 
     std::vector<double> x(num);
     std::vector<double> sv(num);
+    std::vector<double> alpha(na);
     initVector(x);
     initVector(sv);
+    initVector(alpha);
 
-    benchmarkSum(x, sv);
+    benchmarkSum(x, sv, alpha);
 
     return 0;
 }
