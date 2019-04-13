@@ -32,7 +32,8 @@ void pzc_flush_LLC()
 void pzc_sum_simple(
     double*       sum,
     size_t        num,
-    const double* data)
+    const double* x,
+    const double* sv)
 {
     size_t       pid              = get_pid();
     size_t       tid              = get_tid();
@@ -43,9 +44,12 @@ void pzc_sum_simple(
     {
         double acc = 0.0;
         for (size_t i = gid; i < num; i += GLOBAL_WORK_SIZE) {
-            double val = data[i];
+            double a = x[i];
+            double b = sv[i];
             chgthread();
-            acc += val;
+            acc += a * a
+                   -2 * (a * b)
+                   + b * b;
         }
         shared[gid] = acc;
     }
@@ -87,7 +91,8 @@ void pzc_sum_simple(
 void pzc_sum_base2(
     double*       sum,
     size_t        num,
-    const double* data)
+    const double* x,
+    const double* sv)
 {
     size_t       pid              = get_pid();
     size_t       tid              = get_tid();
@@ -98,9 +103,12 @@ void pzc_sum_base2(
     {
         double acc = 0.0;
         for (size_t i = gid; i < num; i += GLOBAL_WORK_SIZE) {
-            double val = data[i];
+            double a = x[i];
+            double b = sv[i];
             chgthread();
-            acc += val;
+            acc += a * a
+                   -2 * (a * b)
+                   + b * b;
         }
         shared[gid] = acc;
     }
@@ -142,7 +150,8 @@ void pzc_sum_base2(
 void pzc_sum_base4(
     double*       sum,
     size_t        num,
-    const double* data)
+    const double* x,
+    const double* sv)
 {
     size_t       pid              = get_pid();
     size_t       tid              = get_tid();
@@ -153,9 +162,12 @@ void pzc_sum_base4(
     {
         double acc = 0.0;
         for (size_t i = gid; i < num; i += GLOBAL_WORK_SIZE) {
-            double val = data[i];
+            double a = x[i];
+            double b = sv[i];
             chgthread();
-            acc += val;
+            acc += a * a
+                   -2 * (a * b)
+                   + b * b;
         }
         shared[gid] = acc;
     }
@@ -203,7 +215,8 @@ void pzc_sum_base4(
 void pzc_sum_base8(
     double*       sum,
     size_t        num,
-    const double* data)
+    const double* x,
+    const double* sv)
 {
     size_t       pid              = get_pid();
     size_t       tid              = get_tid();
@@ -214,9 +227,12 @@ void pzc_sum_base8(
     {
         double acc = 0.0;
         for (size_t i = gid; i < num; i += GLOBAL_WORK_SIZE) {
-            double val = data[i];
+            double a = x[i];
+            double b = sv[i];
             chgthread();
-            acc += val;
+            acc += a * a
+                   -2 * (a * b)
+                   + b * b;
         }
         shared[gid] = acc;
     }
